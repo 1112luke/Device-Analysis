@@ -83,6 +83,35 @@ export default function Options({ importoptions, setimportoptions }) {
                 }}
             ></input>
             <div></div>
+
+            <div>Normalize?</div>
+            <input
+                checked={importoptions.normalize}
+                type="checkbox"
+                onChange={() => {
+                    setimportoptions({
+                        ...importoptions,
+                        normalize: !importoptions.normalize,
+                    });
+                }}
+            ></input>
+            <div></div>
+
+            {importoptions.normalize && (
+                <>
+                    <div>Device Area (cm):</div>
+                    <input
+                        value={importoptions.devicearea}
+                        onChange={(e) => {
+                            setimportoptions({
+                                ...importoptions,
+                                devicearea: e.target.value,
+                            });
+                        }}
+                    ></input>
+                    <div></div>
+                </>
+            )}
         </>
     );
 }

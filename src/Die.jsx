@@ -3,7 +3,7 @@ import Device from "./Device";
 import "./Die.css";
 import Papa from "papaparse";
 
-export default function Die({ devices, setdevices, importoptions }) {
+export default function Die({ devices, setdevices, importoptions, mode }) {
     var dieref = useRef();
 
     function parsedToArrOfObj(input) {
@@ -24,6 +24,7 @@ export default function Die({ devices, setdevices, importoptions }) {
             var filename = file.name;
 
             //get position in die
+            console.log(filename);
             var xpos = parseInt(filename[importoptions.xpos]);
             var ypos = parseInt(filename[importoptions.ypos]);
 
@@ -32,34 +33,40 @@ export default function Die({ devices, setdevices, importoptions }) {
                 complete: (results) => {
                     console.log("complete");
                     var output = [[], []];
+
+                    //get data
+                    for (
+                        var i = parseInt(importoptions.datamin);
+                        i < parseInt(importoptions.datamax);
+                        i++
+                    ) {
+                        output[0].push(
+                            parseFloat(
+                                results.data[i][parseInt(importoptions.Vcol)]
+                            )
+                        );
+                        output[1].push(
+                            parseFloat(
+                                results.data[i][parseInt(importoptions.Icol)]
+                            )
+                        );
+                    }
+
+                    //normalize
+                    if (importoptions.normalize) {
+                        for (var i = 0; i < output[0].length; i++) {
+                            output[1][i] = Math.abs(
+                                output[1][i] / importoptions.devicearea
+                            );
+                        }
+                    }
+
                     switch (importoptions.datatype) {
                         case "I-V":
-                            for (
-                                var i = parseInt(importoptions.datamin);
-                                i < parseInt(importoptions.datamax);
-                                i++
-                            ) {
-                                output[0].push(
-                                    parseFloat(
-                                        results.data[i][
-                                            parseInt(importoptions.Vcol)
-                                        ]
-                                    )
-                                );
-                                output[1].push(
-                                    parseFloat(
-                                        results.data[i][
-                                            parseInt(importoptions.Icol)
-                                        ]
-                                    )
-                                );
-                            }
-                            console.log(currdevices);
                             currdevices[xpos][ypos].data.iv = output;
                             break;
                         case "Breakdown":
-                            currdevices[xpos][ypos].data.breakdown =
-                                results.data;
+                            currdevices[xpos][ypos].data.breakdown = output;
                             break;
                     }
                     setdevices(currdevices);
@@ -98,6 +105,7 @@ export default function Die({ devices, setdevices, importoptions }) {
                                     device={device}
                                     key={row}
                                     setdevices={setdevices}
+                                    mode={mode}
                                 ></Device>
                             );
                         })}
