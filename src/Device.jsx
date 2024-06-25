@@ -2,16 +2,37 @@ import { useEffect, useRef, useState } from "react";
 
 import "chart.js/auto";
 import { Chart } from "react-chartjs-2";
+import Gradient from "javascript-color-gradient";
 
 export default function Device({ device, mode }) {
     var [hovered, sethovered] = useState(false);
 
+    var gradientarr = useRef(
+        new Gradient()
+            .setColorGradient("#db1414", "#0acf14")
+            .setMidpoint(100)
+            .getColors()
+    );
+
+    var [backgroundcolor, setbackgroundcolor] = useState("antiquewhite");
+
     useEffect(() => {}, [device.data.iv]);
 
     useEffect(() => {}, [device.data.breakdown]);
+
+    useEffect(() => {
+        setbackgroundcolor(
+            gradientarr.current[99 - Math.floor(device.stats.vbkgradient * 99)]
+        );
+    }, [device.stats.vbkgradient]);
+
     return (
         <div
             className="device"
+            style={{
+                backgroundColor:
+                    mode == "Breakdown" ? backgroundcolor : "antiquewhite",
+            }}
             onMouseOver={() => {
                 sethovered(true);
             }}
@@ -50,6 +71,9 @@ export default function Device({ device, mode }) {
                 ></Chart>
             )}
 
+            {device.stats.vbk && mode == "Breakdown" && (
+                <div>VBK: {device.stats.vbk}</div>
+            )}
             {device.data.breakdown.length > 0 &&
                 hovered &&
                 mode == "Breakdown" && (

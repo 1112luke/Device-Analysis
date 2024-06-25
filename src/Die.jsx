@@ -20,18 +20,41 @@ export default function Die({ devices, setdevices, importoptions, mode }) {
         //for each file
         for (var i = 0; i < e.dataTransfer.files.length; i++) {
             //get data from file
-            var file = e.dataTransfer.files[i];
-            var filename = file.name;
+            //var file = e.dataTransfer.files[i];
+            //var filename = file.name;
 
             //get position in die
-            console.log(filename);
-            var xpos = parseInt(filename[importoptions.xpos]);
-            var ypos = parseInt(filename[importoptions.ypos]);
+            //var xpos = parseInt(filename[importoptions.xpos]);
+            //var ypos = parseInt(filename[importoptions.ypos]);
 
             //parse file
-            Papa.parse(file, {
+            Promise.all(
+                [...e.dataTransfer.files].map(
+                    (file) =>
+                        new Promise((resolve, reject) =>
+                            Papa.parse(file, {
+                                complete: () => {
+                                    var xpos = parseInt(
+                                        file.name[importoptions.xpos]
+                                    );
+                                    var ypos = parseInt(
+                                        file.name[importoptions.ypos]
+                                    );
+                                    resolve;
+                                }, // Resolve each promise
+                                error: reject,
+                            })
+                        )
+                )
+            ).then((results) => {
+                results.forEach((result, index) => {
+                    console.log(result);
+                });
+            });
+
+            /*Papa.parse(file, {
                 complete: (results) => {
-                    console.log("complete");
+                    console.log(filename);
                     var output = [[], []];
 
                     //get data
@@ -51,7 +74,7 @@ export default function Die({ devices, setdevices, importoptions, mode }) {
                             )
                         );
                     }
-
+                    
                     //normalize
                     if (importoptions.normalize) {
                         for (var i = 0; i < output[0].length; i++) {
@@ -69,9 +92,12 @@ export default function Die({ devices, setdevices, importoptions, mode }) {
                             currdevices[xpos][ypos].data.breakdown = output;
                             break;
                     }
+                    
                     setdevices(currdevices);
                 },
+                
             });
+            */
         }
     }
 
