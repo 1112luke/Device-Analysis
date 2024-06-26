@@ -14,24 +14,36 @@ export default function Device({ device, mode }) {
             .getColors()
     );
 
-    var [backgroundcolor, setbackgroundcolor] = useState("antiquewhite");
+    var [vbkbackgroundcolor, setvbkbackgroundcolor] = useState("antiquewhite");
+    var [ronbackgroundcolor, setronbackgroundcolor] = useState("antiquewhite");
 
     useEffect(() => {}, [device.data.iv]);
 
     useEffect(() => {}, [device.data.breakdown]);
 
     useEffect(() => {
-        setbackgroundcolor(
+        setvbkbackgroundcolor(
             gradientarr.current[99 - Math.floor(device.stats.vbkgradient * 99)]
         );
     }, [device.stats.vbkgradient]);
+
+    useEffect(() => {
+        setronbackgroundcolor(
+            gradientarr.current[99 - Math.floor(device.stats.rongradient * 99)]
+        );
+    }, [device.stats.rongradient]);
 
     return (
         <div
             className="device"
             style={{
-                backgroundColor:
-                    mode == "Breakdown" ? backgroundcolor : "antiquewhite",
+                backgroundColor: hovered
+                    ? "antiquewhite"
+                    : mode == "Breakdown"
+                    ? vbkbackgroundcolor
+                    : mode == "I-V"
+                    ? ronbackgroundcolor
+                    : "antiquewhite",
             }}
             onMouseOver={() => {
                 sethovered(true);
@@ -50,28 +62,68 @@ export default function Device({ device, mode }) {
                 <Chart
                     type="line"
                     data={{
+                        //x axis
                         labels: device.data.iv[0],
                         datasets: [
                             {
+                                //left axis
                                 label: "I-V",
                                 data: device.data.iv[1],
+                                yAxisID: "left",
                                 borderWidth: 0.01,
                             },
                             {
+                                //right/ron
                                 label: "Ron",
+                                data: device.data.ron[1],
+                                yAxisID: "right",
+                            },
+                            {
+                                //minron
+                                label: "minRon",
+                                yAxisId: "right",
+                                data: [
+                                    { y: device.stats.ron, x: 0 },
+                                    { y: device.stats.ron, x: 3 },
+                                ],
+                                pointRadius: 1,
+                            },
+                            {
+                                //tov
+                                label: "TOV",
+                                yAxisId: "left",
                                 data: [
                                     { x: device.stats.ron, y: 0 },
-                                    { x: device.stats.ron, y: 0.08 },
+                                    { x: device.stats.ron, y: 200 },
                                 ],
                                 pointRadius: 1,
                             },
                         ],
                     }}
-                    options={{ aspectRatio: 1 }}
+                    options={{
+                        aspectRatio: 1,
+                        scales: {
+                            x: {},
+                            y: {
+                                display: false,
+                            },
+                            left: {
+                                position: "left",
+                            },
+                            right: {
+                                position: "right",
+                                min: 0,
+                                max: 0.007,
+                            },
+                        },
+                    }}
                 ></Chart>
             )}
+            {!!device.stats.ron && mode == "I-V" && (
+                <div>Ron: {device.stats.ron}</div>
+            )}
 
-            {device.stats.vbk && mode == "Breakdown" && (
+            {!!device.stats.vbk && mode == "Breakdown" && (
                 <div>VBK: {device.stats.vbk}</div>
             )}
             {device.data.breakdown.length > 0 &&

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import Device from "./Device";
 import "./Die.css";
 import Papa from "papaparse";
+import { calculateDeviceStats } from "./functions/Calculations";
 
 export default function Die({ devices, setdevices, importoptions, mode }) {
     var dieref = useRef();
@@ -14,91 +15,67 @@ export default function Die({ devices, setdevices, importoptions, mode }) {
         return out;
     }
 
-    async function handleDrop(e) {
-        var currdevices = [...devices];
+    function handleDrop(e) {
+        var files = [...e.dataTransfer.files];
+        //parse files
+        Promise.all(
+            files.map(
+                (file) =>
+                    new Promise((resolve, reject) =>
+                        Papa.parse(file, {
+                            complete: resolve, // Resolve each promise
+                            error: reject,
+                        })
+                    )
+            )
+        ).then((results) => {
+            var currdevices = [...devices];
+            results.forEach((result, index) => {
+                //for each result
+                var file = files[index];
+                var filename = file.name;
 
-        //for each file
-        for (var i = 0; i < e.dataTransfer.files.length; i++) {
-            //get data from file
-            //var file = e.dataTransfer.files[i];
-            //var filename = file.name;
+                //get position in die
+                var xpos = parseInt(filename[importoptions.xpos]);
+                var ypos = parseInt(filename[importoptions.ypos]);
 
-            //get position in die
-            //var xpos = parseInt(filename[importoptions.xpos]);
-            //var ypos = parseInt(filename[importoptions.ypos]);
+                var output = [[], []];
 
-            //parse file
-            Promise.all(
-                [...e.dataTransfer.files].map(
-                    (file) =>
-                        new Promise((resolve, reject) =>
-                            Papa.parse(file, {
-                                complete: () => {
-                                    var xpos = parseInt(
-                                        file.name[importoptions.xpos]
-                                    );
-                                    var ypos = parseInt(
-                                        file.name[importoptions.ypos]
-                                    );
-                                    resolve;
-                                }, // Resolve each promise
-                                error: reject,
-                            })
-                        )
-                )
-            ).then((results) => {
-                results.forEach((result, index) => {
-                    console.log(result);
-                });
-            });
+                //get data
+                for (
+                    var i = parseInt(importoptions.datamin);
+                    i < parseInt(importoptions.datamax);
+                    i++
+                ) {
+                    output[0].push(
+                        parseFloat(result.data[i][parseInt(importoptions.Vcol)])
+                    );
+                    output[1].push(
+                        parseFloat(result.data[i][parseInt(importoptions.Icol)])
+                    );
+                }
 
-            /*Papa.parse(file, {
-                complete: (results) => {
-                    console.log(filename);
-                    var output = [[], []];
-
-                    //get data
-                    for (
-                        var i = parseInt(importoptions.datamin);
-                        i < parseInt(importoptions.datamax);
-                        i++
-                    ) {
-                        output[0].push(
-                            parseFloat(
-                                results.data[i][parseInt(importoptions.Vcol)]
-                            )
-                        );
-                        output[1].push(
-                            parseFloat(
-                                results.data[i][parseInt(importoptions.Icol)]
-                            )
+                //normalize
+                if (importoptions.normalize) {
+                    for (var j = 0; j < output[0].length; j++) {
+                        output[1][j] = Math.abs(
+                            output[1][j] / importoptions.devicearea
                         );
                     }
-                    
-                    //normalize
-                    if (importoptions.normalize) {
-                        for (var i = 0; i < output[0].length; i++) {
-                            output[1][i] = Math.abs(
-                                output[1][i] / importoptions.devicearea
-                            );
-                        }
-                    }
+                }
 
-                    switch (importoptions.datatype) {
-                        case "I-V":
-                            currdevices[xpos][ypos].data.iv = output;
-                            break;
-                        case "Breakdown":
-                            currdevices[xpos][ypos].data.breakdown = output;
-                            break;
-                    }
-                    
-                    setdevices(currdevices);
-                },
-                
+                switch (importoptions.datatype) {
+                    case "I-V":
+                        currdevices[xpos][ypos].data.iv = [...output];
+                        break;
+                    case "Breakdown":
+                        currdevices[xpos][ypos].data.breakdown = [...output];
+                        break;
+                }
             });
-            */
-        }
+            currdevices = calculateDeviceStats(currdevices);
+            setdevices(currdevices);
+        });
     }
 
     return (

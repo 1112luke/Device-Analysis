@@ -7,8 +7,8 @@ import Radionav from "./Radionav";
 import getRon, { getVbk } from "./functions/Calculations";
 
 function App() {
-    const WIDTH = 5;
-    const HEIGHT = 5;
+    const WIDTH = 6;
+    const HEIGHT = 8;
 
     var [devices, setdevices] = useState([]);
 
@@ -16,88 +16,16 @@ function App() {
     var [mode, setmode] = useState("I-V");
 
     var [importoptions, setimportoptions] = useState({
-        xpos: 24,
-        ypos: 26,
-        Vcol: 2,
-        Icol: 1,
-        datamin: 160,
-        datamax: 320,
-        datatype: "Breakdown",
+        xpos: 25,
+        ypos: 27,
+        Vcol: 1,
+        Icol: 2,
+        datamin: 254,
+        datamax: 1254,
+        datatype: "I-V",
         normalize: true,
         devicearea: 0.00017671458,
     });
-
-    function calculateDeviceStats() {
-        var tempdevices = [...devices];
-
-        //for each device
-        //keep track of nuber of stats
-        var vbkcount = 0;
-        var roncount = 0;
-        var maxvbk = -Infinity;
-        var maxron = -Infinity;
-        var minvbk = Infinity;
-        var minron = Infinity;
-        for (var i = 0; i < tempdevices.length; i++) {
-            for (var j = 0; j < tempdevices[0].length; j++) {
-                var device = tempdevices[i][j];
-
-                //if device has iv data
-                if (device.data.iv.length > 0) {
-                    //calculate linear regression to get x intercept of Ron
-                    //calculate turn on voltage
-                    var result = getRon(device.data.iv);
-                    tempdevices[i][j].stats.ron = result.equation[1];
-
-                    //gradient handling
-                    roncount++;
-                    if (result.equation[1] < minron) {
-                        minron = result.equation[1];
-                    }
-                    if (result.equation[1] > maxron) {
-                        maxron = result.equation[1];
-                    }
-                }
-                //if device has breakdown data
-                if (device.data.breakdown.length > 0) {
-                    vbkcount++;
-                    //get Vbk
-                    var vbk = getVbk(device.data.breakdown);
-                    console.log(i, j, vbk);
-                    tempdevices[i][j].stats.vbk = vbk;
-
-                    //gradient handling
-                    vbkcount++;
-                    if (vbk < minvbk) {
-                        minvbk = vbk;
-                    }
-                    if (vbk > maxvbk) {
-                        maxvbk = vbk;
-                    }
-                }
-            }
-        }
-        //calculate gradients
-        var ronrange = maxron - minron;
-        var vbkrange = maxvbk - minvbk;
-        console.log(minvbk, maxvbk);
-        for (var i = 0; i < tempdevices.length; i++) {
-            for (var j = 0; j < tempdevices[0].length; j++) {
-                //gradients are values 0-1
-                //iv stats
-                if (tempdevices[i][j].data.iv.length > 0) {
-                    tempdevices[i][j].stats.rongradient =
-                        (tempdevices[i][j].stats.ron - minron) / ronrange;
-                }
-
-                //breakdown stats
-                if (tempdevices[i][j].data.breakdown.length > 0) {
-                    tempdevices[i][j].stats.vbkgradient =
-                        (tempdevices[i][j].stats.vbk - minvbk) / vbkrange;
-                }
-            }
-        }
-    }
 
     useEffect(() => {
         console.log(mode);
@@ -106,7 +34,6 @@ function App() {
     useEffect(() => {
         if (devices.length > 0) {
             console.log(devices);
-            calculateDeviceStats();
         }
     }, [devices]);
 
@@ -125,7 +52,7 @@ function App() {
                 col[j] = {
                     xpos: i,
                     ypos: j,
-                    data: { iv: [], breakdown: [] },
+                    data: { iv: [], ron: [], breakdown: [] },
                     stats: { ron: 0, vbk: 0 },
                 };
             }
