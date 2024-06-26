@@ -9,6 +9,7 @@ export default function Navbutton({ name, mode, setmode }) {
                 display: "flex",
                 textAlign: "center",
                 justifyContent: "center",
+                alignItems: "center",
                 width: "100%",
                 height: "100%",
                 fontSize: name == mode ? "25px" : "15px",
@@ -17,7 +18,15 @@ export default function Navbutton({ name, mode, setmode }) {
                 backgroundColor: name == mode ? "lightgrey" : "antiquewhite",
             }}
         >
-            <p>{name}</p>
+            <p
+                style={{
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                }}
+            >
+                {name}
+            </p>
         </a>
     );
 }

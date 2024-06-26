@@ -3,9 +3,24 @@ import Device from "./Device";
 import "./Die.css";
 import Papa from "papaparse";
 import { calculateDeviceStats } from "./functions/Calculations";
+import Modal from "react-modal";
+import Options from "./Options";
 
-export default function Die({ devices, setdevices, importoptions, mode }) {
+export default function Die({
+    devices,
+    setdevices,
+    importoptions,
+    setimportoptions,
+    sethovereddevice,
+    mode,
+}) {
     var dieref = useRef();
+
+    var [modelisopen, setmodalisopen] = useState(false);
+
+    var [files, setfiles] = useState();
+
+    Modal.setAppElement(document.getElementById("root"));
 
     function parsedToArrOfObj(input) {
         var out = [];
@@ -15,8 +30,7 @@ export default function Die({ devices, setdevices, importoptions, mode }) {
         return out;
     }
 
-    function handleDrop(e) {
-        var files = [...e.dataTransfer.files];
+    function parseFiles() {
         //parse files
         Promise.all(
             files.map(
@@ -78,43 +92,84 @@ export default function Die({ devices, setdevices, importoptions, mode }) {
         });
     }
 
+    function handleDrop(e) {
+        setfiles([...e.dataTransfer.files]);
+        setmodalisopen(true);
+    }
+
     return (
-        <div
-            className="die"
-            onDrop={(e) => {
-                e.preventDefault();
-                handleDrop(e);
-                dieref.current.style.backgroundColor = "antiquewhite";
-            }}
-            onDragOver={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                dieref.current.style.backgroundColor = "red";
-            }}
-            onDragLeave={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                dieref.current.style.backgroundColor = "antiquewhite";
-            }}
-            ref={dieref}
-        >
-            {devices.map((devicecol, col) => {
-                return (
-                    <div className="devicecol" key={col}>
-                        {devicecol.map((device, row) => {
-                            return (
-                                <Device
-                                    importoptions={importoptions}
-                                    device={device}
-                                    key={row}
-                                    setdevices={setdevices}
-                                    mode={mode}
-                                ></Device>
-                            );
-                        })}
-                    </div>
-                );
-            })}
-        </div>
+        <>
+            <div
+                className="die"
+                onDrop={(e) => {
+                    e.preventDefault();
+                    handleDrop(e);
+                    dieref.current.style.backgroundColor = "antiquewhite";
+                }}
+                onDragOver={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dieref.current.style.backgroundColor = "red";
+                }}
+                onDragLeave={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dieref.current.style.backgroundColor = "antiquewhite";
+                }}
+                ref={dieref}
+            >
+                {devices.map((devicecol, col) => {
+                    return (
+                        <div className="devicecol" key={col}>
+                            {devicecol.map((device, row) => {
+                                return (
+                                    <Device
+                                        importoptions={importoptions}
+                                        device={device}
+                                        key={row}
+                                        setdevices={setdevices}
+                                        sethovereddevice={sethovereddevice}
+                                        mode={mode}
+                                    ></Device>
+                                );
+                            })}
+                        </div>
+                    );
+                })}
+            </div>
+
+            <Modal
+                isOpen={modelisopen}
+                style={{
+                    content: {
+                        width: "50%",
+                        margin: "auto",
+                        backgroundColor: "rgb(225, 214, 169)",
+                        overflow: "hidden",
+                    },
+                }}
+            >
+                <div
+                    style={{
+                        width: "100%",
+                        height: "100%",
+                        backgroundColor: "rgb(225, 214, 169)",
+                    }}
+                >
+                    <Options
+                        importoptions={importoptions}
+                        setimportoptions={setimportoptions}
+                    ></Options>
+                    <button
+                        onClick={() => {
+                            parseFiles();
+                            setmodalisopen(false);
+                        }}
+                    >
+                        Import Data
+                    </button>
+                </div>
+            </Modal>
+        </>
     );
 }

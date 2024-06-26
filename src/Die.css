@@ -1,9 +1,10 @@
 .die{
-    height:90%;
     aspect-ratio: 1;
+    height: 80%;
     background-color: antiquewhite;  
     border: 2px solid black;
     display: flex;
+    margin-bottom: 5%;
 }
 
 .devicecol{
@@ -15,4 +16,5 @@
 .device{
     border: 1px solid black;
     flex:1;
+    font-size: 20px;
 }

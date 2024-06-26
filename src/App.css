@@ -12,33 +12,31 @@ html, body, #root{
     display: flex;
     justify-content: center;
     align-items: center;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .radionav{
     width:100%;
-    height: 30px;
     border-bottom: 2px solid black;
     flex: 1;
     display:flex;
-    margin-bottom: 20px;
 }
 
-.left{
-    height:100%;
+.diebox{
+    flex: 8;
+    width: 100%;
+    display: flex;
     justify-content: center;
     align-items: center;
-    /*background-color:orange;*/
-    display:flex;
-    flex-direction: column;
-    border-right:2px solid black;
-    flex:2;
+    flex-direction: row;
+    margin: 0px;
+    padding: 0px;
 }
 
-.right{
-    height: 100%;
-    justify-content: center;
-    align-items: center;
-    background-color:lightgray;
-    flex:0.7;
+.chartbox{
+    width: 90%;
+    height: 50%;
+    border: 3px solid black
 }
 

@@ -5,12 +5,15 @@ import Die from "./Die";
 import Options from "./Options";
 import Radionav from "./Radionav";
 import getRon, { getVbk } from "./functions/Calculations";
+import Chartbox from "./Chartbox";
 
 function App() {
     const WIDTH = 6;
     const HEIGHT = 8;
 
     var [devices, setdevices] = useState([]);
+
+    var [dies, setdies] = useState([]);
 
     //can be "I-V, Breakdown"
     var [mode, setmode] = useState("I-V");
@@ -27,6 +30,8 @@ function App() {
         devicearea: 0.00017671458,
     });
 
+    var [hovereddevice, sethovereddevice] = useState();
+
     useEffect(() => {
         console.log(mode);
     }, [mode]);
@@ -40,7 +45,9 @@ function App() {
     useEffect(() => {}, [importoptions]);
 
     useEffect(() => {
-        createDevices();
+        if (dies.length == 0) {
+            makeDie();
+        }
     }, []);
 
     function createDevices() {
@@ -58,26 +65,66 @@ function App() {
             }
             temparr[i] = col;
         }
-        setdevices(temparr);
+        setdevices([...devices, temparr]);
+    }
+
+    function makeDie() {
+        createDevices();
+        setdies([...dies, { hey: "hi" }]);
     }
 
     return (
         <>
             <div className="container">
-                <div className="left">
-                    <Radionav mode={mode} setmode={setmode}></Radionav>
-                    <Die
-                        devices={devices}
-                        setdevices={setdevices}
-                        importoptions={importoptions}
-                        mode={mode}
-                    ></Die>
-                </div>
-                <div className="right">
-                    <Options
-                        importoptions={importoptions}
-                        setimportoptions={setimportoptions}
-                    ></Options>
+                <Radionav mode={mode} setmode={setmode}></Radionav>
+                <div className="diebox">
+                    <div
+                        style={{
+                            flex: 1,
+                            height: "100%",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                        }}
+                    >
+                        <Chartbox mode={mode} device={hovereddevice}></Chartbox>
+                    </div>
+                    <div
+                        style={{
+                            flex: 3,
+                            height: "100%",
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            borderLeft: "1px solid black",
+                        }}
+                    >
+                        <button
+                            onClick={() => {
+                                makeDie();
+                            }}
+                        >
+                            {" "}
+                            Make Die
+                        </button>
+                        {dies.map((die, index) => {
+                            return (
+                                <Die
+                                    devices={devices[index]}
+                                    setdevices={(newdevices) => {
+                                        var tempdevices = [...devices];
+                                        tempdevices[index] = newdevices;
+                                        setdevices(tempdevices);
+                                    }}
+                                    importoptions={importoptions}
+                                    setimportoptions={setimportoptions}
+                                    sethovereddevice={sethovereddevice}
+                                    mode={mode}
+                                    key={index}
+                                ></Die>
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
         </>
