@@ -24,7 +24,7 @@ function App() {
         Vcol: 1,
         Icol: 2,
         datamin: 254,
-        datamax: 1254,
+        datamax: 800,
         datatype: "I-V",
         normalize: true,
         devicearea: 0.00017671458,
