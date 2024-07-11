@@ -5,7 +5,7 @@ export default function Chartbox({ mode, device }) {
     return (
         <>
             <div className="chartbox">
-                {device.data.iv.length > 0 && (
+                {device && mode == "I-V" && (
                     <Chart
                         type="line"
                         data={{
@@ -49,6 +49,7 @@ export default function Chartbox({ mode, device }) {
                         }}
                         //tjis might be problem
                         options={{
+                            aspectRatio: 1,
                             scales: {
                                 x: {},
                                 y: {
@@ -65,6 +66,48 @@ export default function Chartbox({ mode, device }) {
                             },
                         }}
                     ></Chart>
+                )}
+
+{device && mode == "Breakdown" && (
+                    <Chart
+                    type="line"
+                    data={{
+                        labels: device.data.breakdown[0],
+                        datasets: [
+                            {
+                                label: "Breakdown",
+                                data: device.data.breakdown[1],
+                                borderWidth: 2,
+                                pointRadius: 1.3,
+                            },
+                            {
+                                label: "Vbk",
+                                data: [
+                                    {
+                                        x: device.stats.vbk,
+                                        y: 0.05,
+                                    },
+                                    { x: device.stats.vbk, y: 10 },
+                                ],
+                                pointRadius: 1,
+                                pointHitRadius: 3,
+                            },
+                        ],
+                    }}
+                    options={{
+                        aspectRatio: 1,
+                        scales: {
+                            x: {
+                                display: true,
+                                max: 0,
+                                type: "linear",
+                            },
+                            y: {
+                                type: "logarithmic",
+                            },
+                        },
+                    }}
+                ></Chart>
                 )}
             </div>
         </>
